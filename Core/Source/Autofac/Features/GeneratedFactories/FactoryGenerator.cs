@@ -28,6 +28,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+#if ASPNETCORE50
+using System.Reflection;
+#endif
 using Autofac.Core;
 using Autofac.Util;
 
@@ -122,7 +125,11 @@ namespace Autofac.Features.GeneratedFactories
             var activatorParamsParam = Expression.Parameter(typeof(IEnumerable<Parameter>), "p");
             var activatorParams = new[] { activatorContextParam, activatorParamsParam };
 
+#if !ASPNETCORE50
             var invoke = delegateType.GetMethod("Invoke");
+#else
+            var invoke = System.Reflection.TypeExtensions.GetMethod(delegateType, "Invoke");
+#endif
 
             // [dps]*
             var creatorParams = invoke

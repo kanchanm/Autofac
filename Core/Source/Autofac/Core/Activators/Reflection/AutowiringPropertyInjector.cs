@@ -45,13 +45,25 @@ namespace Autofac.Core.Activators.Reflection
             {
                 var propertyType = property.PropertyType;
 
+#if !ASPNETCORE50
                 if (propertyType.IsValueType && !propertyType.IsEnum)
+#else
+                if (propertyType.GetTypeInfo().IsValueType && !propertyType.GetTypeInfo().IsEnum)
+#endif
                     continue;
 
+#if !ASPNETCORE50
                 if (propertyType.IsArray && propertyType.GetElementType().IsValueType)
+#else
+                if (propertyType.IsArray && propertyType.GetElementType().GetTypeInfo().IsValueType)
+#endif
                     continue;
 
+#if !ASPNETCORE50
                 if (propertyType.IsGenericEnumerableInterfaceType() && propertyType.GetGenericArguments()[0].IsValueType)
+#else
+                if (propertyType.IsGenericEnumerableInterfaceType() && propertyType.GetGenericArguments()[0].GetTypeInfo().IsValueType)
+#endif
                     continue;
 
                 if (property.GetIndexParameters().Length != 0)

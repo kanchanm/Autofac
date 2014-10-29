@@ -59,17 +59,30 @@ namespace Autofac.Features.LazyDependencies
             if (swt == null || lazyType == null || !swt.ServiceType.IsGenericTypeDefinedBy(lazyType))
                 return Enumerable.Empty<IComponentRegistration>();
 
+
+#if !ASPNETCORE50
             var valueType = swt.ServiceType.GetGenericArguments()[0];
             var metaType = swt.ServiceType.GetGenericArguments()[1];
 
             if (!metaType.IsClass)
+#else
+            var valueType = System.Reflection.TypeExtensions.GetGenericArguments(swt.ServiceType)[0];
+            var metaType = System.Reflection.TypeExtensions.GetGenericArguments(swt.ServiceType)[1];
+
+            if (!metaType.GetTypeInfo().IsClass)
+#endif
                 return Enumerable.Empty<IComponentRegistration>();
 
             var valueService = swt.ChangeType(valueType);
 
+#if !ASPNETCORE50
             var registrationCreator = (RegistrationCreator)Delegate.CreateDelegate(
                 typeof(RegistrationCreator),
                 CreateLazyRegistrationMethod.MakeGenericMethod(valueType, metaType));
+#else
+            var registrationCreator = (RegistrationCreator)(CreateLazyRegistrationMethod.MakeGenericMethod(
+                valueType, metaType)).CreateDelegate(typeof(RegistrationCreator));
+#endif
 
             return registrationAccessor(valueService)
                 .Select(v => registrationCreator(service, v));
@@ -109,7 +122,11 @@ namespace Autofac.Features.LazyDependencies
         static Type GetLazyType(IServiceWithType serviceWithType)
         {
             return serviceWithType != null
+#if !ASPNETCORE50
                    && serviceWithType.ServiceType.IsGenericType
+#else
+                   && serviceWithType.ServiceType.GetTypeInfo().IsGenericType
+#endif
                    && serviceWithType.ServiceType.GetGenericTypeDefinition().FullName == "System.Lazy`2"
                        ? serviceWithType.ServiceType.GetGenericTypeDefinition()
                        : null;

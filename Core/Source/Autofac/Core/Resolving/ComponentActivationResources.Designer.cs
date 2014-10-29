@@ -10,7 +10,9 @@
 
 namespace Autofac.Core.Resolving {
     using System;
-    
+#if ASPNETCORE50
+    using System.Reflection;
+#endif    
     
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
@@ -39,7 +41,12 @@ namespace Autofac.Core.Resolving {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
+#if !ASPNETCORE50
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Autofac.Core.Resolving.ComponentActivationResources", typeof(ComponentActivationResources).Assembly);
+#else
+                    //TODO: Removed namespace to work around https://github.com/aspnet/KRuntime/issues/738
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Autofac.ComponentActivationResources", typeof(ComponentActivationResources).GetTypeInfo().Assembly);
+#endif
                     resourceMan = temp;
                 }
                 return resourceMan;

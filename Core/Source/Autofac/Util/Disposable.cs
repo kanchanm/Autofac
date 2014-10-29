@@ -26,6 +26,9 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+#if ASPNETCORE50
+using System.Threading;
+#endif
 
 namespace Autofac.Util
 {
@@ -66,7 +69,11 @@ namespace Autofac.Util
         {
             get
             {
+#if !ASPNETCORE50
                 Thread.MemoryBarrier();
+#else
+                Interlocked.MemoryBarrier();
+#endif
                 return _isDisposed == DisposedFlag;
             }
         }

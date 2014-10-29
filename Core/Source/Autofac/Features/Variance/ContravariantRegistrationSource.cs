@@ -124,10 +124,19 @@ namespace Autofac.Features.Variance
 
         static IEnumerable<Type> GetBagOfTypesAssignableFrom(Type type)
         {
+#if !ASPNETCORE50
             if (type.BaseType != null)
+#else
+            if (type.GetTypeInfo().BaseType != null)
+#endif
             {
+#if !ASPNETCORE50
                 yield return type.BaseType;
                 foreach (var fromBase in GetBagOfTypesAssignableFrom(type.BaseType))
+#else
+                yield return type.GetTypeInfo().BaseType;
+                foreach (var fromBase in GetBagOfTypesAssignableFrom(type.GetTypeInfo().BaseType))
+#endif
                     yield return fromBase;
             }
             else
@@ -149,15 +158,23 @@ namespace Autofac.Features.Variance
 
         static bool IsCompatibleInterfaceType(Type type, out int contravariantParameterIndex)
         {
+#if !ASPNETCORE50
             if (type.IsGenericType && type.IsInterface)
+#else
+            if (type.GetTypeInfo().IsGenericType && type.GetTypeInfo().IsInterface)
+#endif
             {
                 var contravariantWithIndex = type
                     .GetGenericTypeDefinition()
                     .GetGenericArguments()
                     .Select((c, i) => new 
                     {
+#if !ASPNETCORE50
                         IsContravariant = (c.GenericParameterAttributes & GenericParameterAttributes.Contravariant) !=
-                            GenericParameterAttributes.None,
+#else
+                        IsContravariant = (c.GetTypeInfo().GenericParameterAttributes & GenericParameterAttributes.Contravariant) !=
+#endif
+                        GenericParameterAttributes.None,
                         Index = i
                     })
                     .Where(cwi => cwi.IsContravariant)

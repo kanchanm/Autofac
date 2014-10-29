@@ -25,6 +25,9 @@
 
 using System;
 using System.Globalization;
+#if ASPNETCORE50
+using System.Reflection;
+#endif
 using Autofac.Builder;
 using Autofac.Core;
 
@@ -46,7 +49,11 @@ namespace Autofac.Features.OpenGenerics
             : base(implementer)
         {
             if (fromService == null) throw new ArgumentNullException("fromService");
+#if !ASPNETCORE50
             if (!fromService.ServiceType.IsGenericTypeDefinition)
+#else
+            if (!fromService.ServiceType.GetTypeInfo().IsGenericTypeDefinition)
+#endif
                 throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, OpenGenericDecoratorActivatorDataResources.DecoratedServiceIsNotOpenGeneric, fromService));
 
             _fromService = fromService;

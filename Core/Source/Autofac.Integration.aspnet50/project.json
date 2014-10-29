@@ -1,0 +1,11 @@
+{
+    "version": "1.0.0-*",
+    "dependencies": {
+        "Autofac": "",
+        "Microsoft.Framework.DependencyInjection": "1.0.0-alpha4"
+    },
+  "frameworks": {
+    "aspnet50": { },
+    "aspnetcore50": { }
+  }
+}

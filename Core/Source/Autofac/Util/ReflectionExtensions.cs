@@ -124,9 +124,11 @@ namespace Autofac.Util
         /// <param name="element">The member to inspect.</param>
         /// <param name="inherit"><c>true</c> to inspect the ancestors of element; otherwise, <c>false</c>.</param>
         /// <returns>A custom attribute that matches <typeparamref name="T"/>, or <c>null</c> if no such attribute is found.</returns>
+#if !ASPNETCORE50
         public static T GetCustomAttribute<T>(this MemberInfo element, bool inherit) where T : Attribute
         {
             return (T)Attribute.GetCustomAttribute(element, typeof(T), inherit);
         }
+#endif
     }
 }

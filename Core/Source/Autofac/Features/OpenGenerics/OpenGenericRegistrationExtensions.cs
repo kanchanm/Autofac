@@ -25,6 +25,9 @@
 
 using System;
 using System.Globalization;
+#if ASPNETCORE50
+using System.Reflection;
+#endif
 using Autofac.Builder;
 using Autofac.Core;
 
@@ -38,7 +41,11 @@ namespace Autofac.Features.OpenGenerics
             if (builder == null) throw new ArgumentNullException("builder");
             if (implementor == null) throw new ArgumentNullException("implementor");
 
+#if !ASPNETCORE50
             if (!implementor.IsGenericTypeDefinition)
+#else
+            if (!implementor.GetTypeInfo().IsGenericTypeDefinition)
+#endif
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture, OpenGenericRegistrationExtensionsResources.ImplementorMustBeOpenGenericType, implementor));
 

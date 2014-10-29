@@ -78,6 +78,7 @@ namespace Autofac.Features.Scanning
                 rb.RegistrationData.Services.OfType<IServiceWithType>().All(swt =>
                     swt.ServiceType.IsAssignableFrom(t)));
 
+#if !ASPNETCORE50
             foreach (var t in types
                 .Where(t =>
                     t.IsClass &&
@@ -85,6 +86,15 @@ namespace Autofac.Features.Scanning
                     !t.IsGenericTypeDefinition &&
                     !t.IsDelegate() &&
                     rb.ActivatorData.Filters.All(p => p(t))))
+#else
+            foreach (var t in types
+                .Where(t =>
+                    t.GetTypeInfo().IsClass &&
+                    !t.GetTypeInfo().IsAbstract &&
+                    !t.GetTypeInfo().IsGenericTypeDefinition &&
+                    !t.IsDelegate() &&
+                    rb.ActivatorData.Filters.All(p => p(t))))
+#endif
             {
                 var scanned = RegistrationBuilder.ForType(t)
                     .FindConstructorsWith(rb.ActivatorData.ConstructorFinder)

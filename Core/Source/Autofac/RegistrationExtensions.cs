@@ -437,7 +437,11 @@ namespace Autofac
 
             return registration.WithMetadata(t =>
             {
+#if !ASPNETCORE50
                 var attrs = t.GetCustomAttributes(true).OfType<TAttribute>().ToArray();
+#else
+                var attrs = t.GetTypeInfo().GetCustomAttributes(true).OfType<TAttribute>().ToArray();
+#endif
                 if (attrs.Length == 0)
                     throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, RegistrationExtensionsResources.MetadataAttributeNotFound, typeof(TAttribute), t));
                 if (attrs.Length != 1)

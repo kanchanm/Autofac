@@ -24,6 +24,9 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+#if ASPNETCORE50
+using System.Reflection;
+#endif
 using System.Globalization;
 using System.Linq;
 using Autofac.Util;
@@ -75,7 +78,12 @@ namespace Autofac
             if (@this == null) throw new ArgumentNullException("this");
             if (openGeneric == null) throw new ArgumentNullException("openGeneric");
 
+#if !ASPNETCORE50
             if (!(openGeneric.IsGenericTypeDefinition || openGeneric.ContainsGenericParameters))
+#else
+            if (!(openGeneric.GetTypeInfo().IsGenericTypeDefinition || openGeneric.GetTypeInfo().ContainsGenericParameters))
+#endif
+
                 throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, TypeExtensionsResources.NotOpenGenericType, openGeneric.FullName));
 
             return @this.GetTypesThatClose(openGeneric).Any();

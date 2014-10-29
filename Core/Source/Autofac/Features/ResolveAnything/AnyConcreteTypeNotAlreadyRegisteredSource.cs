@@ -26,6 +26,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if ASPNETCORE50
+using System.Reflection;
+#endif
 using Autofac.Builder;
 using Autofac.Core;
 using Autofac.Util;
@@ -75,9 +78,15 @@ namespace Autofac.Features.ResolveAnything
             }
             var ts = service as TypedService;
             if (ts == null ||
+#if !ASPNETCORE50
                 !ts.ServiceType.IsClass ||
                 ts.ServiceType.IsSubclassOf(typeof(Delegate)) ||
                 ts.ServiceType.IsAbstract ||
+#else
+                !ts.ServiceType.GetTypeInfo().IsClass ||
+                ts.ServiceType.GetTypeInfo().IsSubclassOf(typeof(Delegate)) ||
+                ts.ServiceType.GetTypeInfo().IsAbstract ||
+#endif
                 !_predicate(ts.ServiceType) ||
                 registrationAccessor(service).Any())
                 return Enumerable.Empty<IComponentRegistration>();

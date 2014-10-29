@@ -10,8 +10,11 @@
 
 namespace Autofac.Core.Activators.Reflection {
     using System;
-    
-    
+#if ASPNETCORE50
+    using System.Reflection;
+#endif
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -39,7 +42,12 @@ namespace Autofac.Core.Activators.Reflection {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
+#if !ASPNETCORE50
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Autofac.Core.Activators.Reflection.ConstructorParameterBindingResources", typeof(ConstructorParameterBindingResources).Assembly);
+#else
+                    //TODO: Removed namespace to work around https://github.com/aspnet/KRuntime/issues/738
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Autofac.ConstructorParameterBindingResources", typeof(ConstructorParameterBindingResources).GetTypeInfo().Assembly);
+#endif
                     resourceMan = temp;
                 }
                 return resourceMan;

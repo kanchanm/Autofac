@@ -58,14 +58,24 @@ namespace Autofac.Features.Metadata
             var valueType = swt.ServiceType.GetGenericArguments()[0];
             var metaType = swt.ServiceType.GetGenericArguments()[1];
 
+#if !ASPNETCORE50
             if (!metaType.IsClass)
+#else
+            if (!metaType.GetTypeInfo().IsClass)
+#endif
                 return Enumerable.Empty<IComponentRegistration>();
 
             var valueService = swt.ChangeType(valueType);
 
+#if !ASPNETCORE50
             var registrationCreator = (RegistrationCreator)Delegate.CreateDelegate(
                 typeof(RegistrationCreator),
                 CreateMetaRegistrationMethod.MakeGenericMethod(valueType, metaType));
+#else
+            var methodInfo = CreateMetaRegistrationMethod.MakeGenericMethod(valueType, metaType);
+            var registrationCreator = (RegistrationCreator) methodInfo.CreateDelegate(
+                typeof(RegistrationCreator), null);
+#endif
 
             return registrationAccessor(valueService)
                 .Select(v => registrationCreator.Invoke(service, v));

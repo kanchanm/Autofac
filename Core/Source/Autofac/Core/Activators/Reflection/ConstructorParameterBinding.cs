@@ -171,8 +171,11 @@ namespace Autofac.Core.Activators.Reflection
                 var parameterIndexExpression = Expression.ArrayIndex(parametersExpression, indexExpression);
                 var convertExpression = Expression.Convert(parameterIndexExpression, parameterType);
                 argumentsExpression[paramIndex] = convertExpression;
-
+#if !ASPNETCORE50
                 if (!parameterType.IsValueType) continue;
+#else
+                if (!parameterType.GetTypeInfo().IsValueType) continue;
+#endif
 
                 var nullConditionExpression = Expression.Equal(
                     parameterIndexExpression, Expression.Constant(null));

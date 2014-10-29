@@ -83,7 +83,11 @@ namespace Autofac.Features.Collections
 
                 if (serviceType.IsGenericEnumerableInterfaceType())
                 {
+#if !ASPNETCORE50
                     elementType = serviceType.GetGenericArguments()[0];
+#else
+                    elementType = System.Reflection.TypeExtensions.GetGenericArguments(serviceType)[0];
+#endif
                 }
                 else if (serviceType.IsArray)
                 {

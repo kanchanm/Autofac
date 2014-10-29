@@ -10,8 +10,11 @@
 
 namespace Autofac.Features.ResolveAnything {
     using System;
-    
-    
+#if ASPNETCORE50
+    using System.Reflection;
+#endif
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -39,8 +42,14 @@ namespace Autofac.Features.ResolveAnything {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
+#if !ASPNETCORE50
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Autofac.Features.ResolveAnything.AnyConcreteTypeNotAlreadyRegisteredSourceResourc" +
                             "es", typeof(AnyConcreteTypeNotAlreadyRegisteredSourceResources).Assembly);
+#else
+                    //TODO: Removed namespace to work around https://github.com/aspnet/KRuntime/issues/738
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Autofac.AnyConcreteTypeNotAlreadyRegisteredSourceResourc" +
+                            "es", typeof(AnyConcreteTypeNotAlreadyRegisteredSourceResources).GetTypeInfo().Assembly);
+#endif
                     resourceMan = temp;
                 }
                 return resourceMan;

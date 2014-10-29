@@ -44,8 +44,11 @@ namespace Autofac.Features.Metadata
         {
             if (typeof(TMetadata) == typeof(IDictionary<string, object>))
                 return m => (TMetadata)m;
-
+#if !ASPNETCORE50
             if (!typeof(TMetadata).IsClass)
+#else
+            if (!typeof(TMetadata).GetTypeInfo().IsClass)
+#endif
                 throw new DependencyResolutionException(
                     string.Format(CultureInfo.CurrentCulture, MetadataViewProviderResources.InvalidViewImplementation, typeof(TMetadata).Name));
 

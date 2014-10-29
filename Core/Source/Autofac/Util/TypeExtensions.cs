@@ -64,7 +64,11 @@ namespace Autofac.Util
         static IEnumerable<Type> TypesAssignableFrom(Type candidateType)
         {
             return candidateType.GetInterfaces().Concat(
+#if !ASPNETCORE50
                 Traverse.Across(candidateType, t => t.BaseType));
+#else
+                Traverse.Across(candidateType, t => t.GetTypeInfo().BaseType));
+#endif
         }
 
         public static bool IsGenericTypeDefinedBy(this Type @this, Type openGeneric)
@@ -72,7 +76,11 @@ namespace Autofac.Util
             if (@this == null) throw new ArgumentNullException("this");
             if (openGeneric == null) throw new ArgumentNullException("openGeneric");
 
+#if !ASPNETCORE50
             return !@this.ContainsGenericParameters && @this.IsGenericType && @this.GetGenericTypeDefinition() == openGeneric;
+#else
+            return !@this.GetTypeInfo().ContainsGenericParameters && @this.GetTypeInfo().IsGenericType && @this.GetGenericTypeDefinition() == openGeneric;
+#endif
         }
 
         public static bool IsClosedTypeOf(this Type @this, Type openGeneric)
@@ -80,13 +88,21 @@ namespace Autofac.Util
             if (@this == null) throw new ArgumentNullException("this");
             if (openGeneric == null) throw new ArgumentNullException("openGeneric");
 
+#if !ASPNETCORE50
             return TypesAssignableFrom(@this).Any(t => t.IsGenericType && !@this.ContainsGenericParameters && t.GetGenericTypeDefinition() == openGeneric);
+#else
+            return TypesAssignableFrom(@this).Any(t => t.GetTypeInfo().IsGenericType && !@this.GetTypeInfo().ContainsGenericParameters && t.GetGenericTypeDefinition() == openGeneric);
+#endif
         }
 
         public static bool IsDelegate(this Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
+#if !ASPNETCORE50
             return type.IsSubclassOf(typeof(Delegate));
+#else
+            return type.GetTypeInfo().IsSubclassOf(typeof(Delegate));
+#endif
         }
 
         public static Type FunctionReturnType(this Type type)
@@ -106,33 +122,54 @@ namespace Autofac.Util
                 var argumentDefinition = genericArgumentDefinitions[i];
                 var parameter = parameters[i];
 
+#if !ASPNETCORE50
                 if (argumentDefinition.GetGenericParameterConstraints()
+#else
+                if (argumentDefinition.GetTypeInfo().GetGenericParameterConstraints()
+#endif
                     .Any(constraint => !ParameterCompatibleWithTypeConstraint(parameter, constraint)))
                 {
                     return false;
                 }
 
+#if !ASPNETCORE50
                 var specialConstraints = argumentDefinition.GenericParameterAttributes;
+#else
+                var specialConstraints = argumentDefinition.GetTypeInfo().GenericParameterAttributes;
+#endif
 
                 if ((specialConstraints & GenericParameterAttributes.DefaultConstructorConstraint)
                     != GenericParameterAttributes.None)
                 {
+#if !ASPNETCORE50
                     if (!parameter.IsValueType && parameter.GetConstructor(EmptyTypes) == null)
+#else
+                    if (!parameter.GetTypeInfo().IsValueType && parameter.GetConstructor(EmptyTypes) == null)
+#endif
                         return false;
                 }
 
                 if ((specialConstraints & GenericParameterAttributes.ReferenceTypeConstraint)
                     != GenericParameterAttributes.None)
                 {
+#if !ASPNETCORE50
                     if (parameter.IsValueType)
+#else
+                    if (parameter.GetTypeInfo().IsValueType)
+#endif
                         return false;
                 }
 
                 if ((specialConstraints & GenericParameterAttributes.NotNullableValueTypeConstraint)
                     != GenericParameterAttributes.None)
                 {
+#if !ASPNETCORE50
                     if (!parameter.IsValueType ||
                         (parameter.IsGenericType && IsGenericTypeDefinedBy(parameter, typeof(Nullable<>))))
+#else
+                    if (!parameter.GetTypeInfo().IsValueType ||
+                        (parameter.GetTypeInfo().IsGenericType && IsGenericTypeDefinedBy(parameter, typeof(Nullable<>))))
+#endif
                         return false;
                 }
             }
@@ -143,7 +180,11 @@ namespace Autofac.Util
         static bool ParameterCompatibleWithTypeConstraint(Type parameter, Type constraint)
         {
             return constraint.IsAssignableFrom(parameter) ||
+#if !ASPNETCORE50
                    Traverse.Across(parameter, p => p.BaseType)
+#else
+                   Traverse.Across(parameter, p => p.GetTypeInfo().BaseType)
+#endif
                        .Concat(parameter.GetInterfaces())
                        .Any(p => ParameterEqualsConstraint(p, constraint));
         }
@@ -152,7 +193,11 @@ namespace Autofac.Util
         static bool ParameterEqualsConstraint(Type parameter, Type constraint)
         {
             var genericArguments = parameter.GetGenericArguments();
+#if !ASPNETCORE50
             if (genericArguments.Length > 0 && constraint.IsGenericType)
+#else
+            if (genericArguments.Length > 0 && constraint.GetTypeInfo().IsGenericType)
+#endif
             {
                 var typeDefinition = constraint.GetGenericTypeDefinition();
                 if (typeDefinition.GetGenericArguments().Length == genericArguments.Length)
